@@ -64,6 +64,13 @@
                 <&kp LCTRL>;
         };
 
+        closenvim: closenvim {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Close Nvim";
+            bindings = <&kp COLON &kp Q &kp A &kp EXCL &kp RET>;
+        };
+
     };
 
     combos {
