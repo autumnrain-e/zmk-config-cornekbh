@@ -9,6 +9,14 @@
 #define ADJ 3
 #define EXTRA 4
 
+&mt {
+    tapping-term-ms = <200>;
+};
+
+&lt {
+    tapping-term-ms = <200>;
+};
+
 / {
     behaviors {
         hm: homerow_mods {
