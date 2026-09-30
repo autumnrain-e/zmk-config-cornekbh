@@ -36,7 +36,8 @@ as in chat.
 | `build.yaml` | CI build matrix (`:21-28`): left half with the Studio snippet, right half, `settings_reset` |
 | `config/west.yml` | Pins the ZMK revision. External modules go here (`:7-8`) |
 | `.github/workflows/build.yml` | Runs the ZMK build on every push, every PR and manual dispatch |
-| `zephyr/module.yml`, `boards/shields/` | Make the repo a Zephyr module so custom shields could live in `boards/shields/`. It is empty; the Corne shield comes from upstream ZMK |
+| `zephyr/module.yml`, `boards/shields/` | Make the repo a Zephyr module so custom shields can live in `boards/shields/`. The Corne shield comes from upstream ZMK |
+| `boards/shields/nice_view_custom/` | A renamed copy of ZMK v0.3's `nice_view` shield, used by the right half only, so its screen shows our own picture. Its `README.md` explains how to change the picture |
 | `README.md` | The vendor's end-user guide and images. It describes the vendor's keymap, not necessarily the current one |
 
 ## Build and verify
