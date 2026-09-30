@@ -50,5 +50,6 @@ picture.
 
 `CONFIG_NICE_VIEW_CUSTOM_WIDGET_INVERTED=y` swaps black and white on the right
 half's screen. Set it in `nice_view_custom.conf`, which only the right half
-loads. **Don't set it in `config/corne.conf`.** That file is shared with the left
-half, whose build doesn't know this option and would fail.
+loads. `config/corne.conf` would also work, but that file is shared with the left
+half. The left half's build can't use this option, so it ignores it and prints an
+"assigned the value 'y' but got the value 'n'" warning.

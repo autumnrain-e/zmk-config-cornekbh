@@ -35,9 +35,10 @@ Studio. The right half is a peripheral that reports key presses.
 - Only the left build gets the Studio USB snippet (`build.yaml:22-24` vs `:25-26`).
 - The screens differ too. The left half uses ZMK's stock `nice_view` shield (a status
   screen). The right half uses `nice_view_custom` from `boards/shields/`, which shows
-  our own picture. Kconfig options for the right half's screen go in that shield's
-  `nice_view_custom.conf`, not in `corne.conf`, because the left build doesn't
-  know them and would fail.
+  our own picture. Kconfig options for the right half's screen
+  (`CONFIG_NICE_VIEW_CUSTOM_WIDGET_*`) go in that shield's `nice_view_custom.conf`.
+  In `corne.conf`, the left build would ignore them with an "assigned … but got"
+  warning.
 - The README tells users to plug in the left half for Studio (`README.md:5`).
 - `corne.conf` has no per-side split. Every flag in it applies to both halves.
 - `settings_reset` (`build.yaml:27-28`) is a third, stand-alone firmware that wipes
