@@ -14,8 +14,10 @@ three ways:
   can't clash with ZMK's shield.
 - **`widgets/peripheral_status.c`** always shows `custom_art` instead of picking
   at random.
-- **`widgets/art.c`** holds our picture. `art/make_art.py` generates it from
-  `art/corne_kbh.png`.
+- **`widgets/art.c`** holds our picture. `art/make_art.py` generates it from an
+  image in `art/`. The comment at the top of `art.c` shows the exact command that
+  made it. The current picture is `art/corne_kbh.png`, drawn pixel by pixel at
+  the screen's exact size.
 
 When you upgrade ZMK, compare this folder with the new version's
 `app/boards/shields/nice_view` in case upstream changed something.
@@ -24,8 +26,11 @@ When you upgrade ZMK, compare this folder with the new version's
 
 1. **Pick an image.** The picture area is 68 pixels wide and 140 tall, as you
    look at the keyboard. Any size works because the script shrinks it to fit.
-   The screen shows only black and white, so simple, high-contrast images work
-   best.
+   An image that is exactly 68 × 140 is used pixel for pixel, so you can draw
+   one in any pixel editor. The screen shows only black and white, so simple,
+   high-contrast images work best. White in the image shows as white on the
+   screen. The strip above the picture (battery and connection icons) is black
+   with white icons.
 2. **Save it in `art/` and convert it.** Keeping it in `art/` records where the
    picture came from. Run this from the repo root:
 

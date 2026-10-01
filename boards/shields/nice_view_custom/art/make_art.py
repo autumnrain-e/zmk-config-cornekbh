@@ -68,7 +68,7 @@ def to_black_and_white(img, threshold):
     )
 
 
-def c_source(data, source_name):
+def c_source(data, command):
     rows = []
     for i in range(0, len(data), 15):
         rows.append("        " + ", ".join(f"0x{b:02x}" for b in data[i : i + 15]) + ",")
@@ -76,12 +76,12 @@ def c_source(data, source_name):
     return f"""/*
  * The picture shown on the right half's nice!view.
  *
- * GENERATED FILE, do not edit by hand. It was made from
- *     {source_name}
- * by boards/shields/nice_view_custom/art/make_art.py.
+ * GENERATED FILE, do not edit by hand. To rebuild it, run from the repo root:
+ *     python3 boards/shields/nice_view_custom/art/{command}
  *
  * Format: an LVGL 8 image (the graphics library ZMK v0.3 uses), 140 x 68
- * pixels, 1 bit per pixel (0 = black, 1 = white), 8 pixels per byte. It is
+ * pixels, 1 bit per pixel, 8 pixels per byte. On the nice!view a 1 shows as
+ * black and a 0 as white (the display driver flips LVGL's colors). It is
  * stored turned 90 degrees clockwise because the screen is mounted sideways.
  */
 
@@ -136,12 +136,21 @@ def main():
     # the pixels into bytes. Each row of 140 pixels takes 18 bytes (the last
     # 4 bits are padding), which is the layout LVGL expects.
     sideways = picture.transpose(Image.Transpose.ROTATE_270)
-    data = sideways.tobytes()
+    # Flip every pixel. The nice!view's display driver in ZMK v0.3 shows LVGL's
+    # "white" as a dark pixel and its "black" as a light one (ZMK's own pictures
+    # are drawn that way too), so without this the screen shows a negative.
+    data = bytes(b ^ 0xFF for b in sideways.tobytes())
     assert len(data) == 18 * WIDTH, len(data)
 
+    # Record the exact command in art.c, so the picture can be rebuilt later.
     source = args.image.resolve()
     source_name = source.relative_to(REPO_ROOT) if source.is_relative_to(REPO_ROOT) else source.name
-    OUTPUT.write_text(c_source(data, source_name))
+    command = f"make_art.py {source_name}"
+    if args.crop:
+        command += " --crop"
+    if args.threshold is not None:
+        command += f" --threshold {args.threshold}"
+    OUTPUT.write_text(c_source(data, command))
     print(f"Wrote {OUTPUT.relative_to(REPO_ROOT)}")
 
 
