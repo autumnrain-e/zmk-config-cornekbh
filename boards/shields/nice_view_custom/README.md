@@ -17,8 +17,9 @@ three ways:
 - **`widgets/art.c`** holds our pictures. `art/make_art.py` generates it from
   the images in `art/`. The comment at the top of `art.c` shows the exact command
   that made it. The current pictures are `art/corne_kbh.png` ("CorneKBH" and a
-  mini keyboard) and `art/coffee.png` (a steaming cup in front of a retro
-  sunset). Both are drawn pixel by pixel at the screen's exact size.
+  mini keyboard), `art/coffee.png` (a steaming cup in front of a retro sunset)
+  and `art/black_cat.png` (a black cat on a wall in front of the full moon).
+  All are drawn pixel by pixel at the screen's exact size.
 
 When you upgrade ZMK, compare this folder with the new version's
 `app/boards/shields/nice_view` in case upstream changed something.
@@ -40,6 +41,7 @@ When you upgrade ZMK, compare this folder with the new version's
    python3 boards/shields/nice_view_custom/art/make_art.py \
      boards/shields/nice_view_custom/art/corne_kbh.png \
      boards/shields/nice_view_custom/art/coffee.png \
+     boards/shields/nice_view_custom/art/black_cat.png \
      boards/shields/nice_view_custom/art/my_picture.png --preview /tmp/preview.png
    ```
 
