@@ -2,34 +2,37 @@
 # /// script
 # dependencies = ["pillow"]
 # ///
-"""Turn an image into the picture shown on the right half's nice!view.
+"""Turn images into the pictures shown on the right half's nice!view.
 
-Usage (from the repo root):
+Usage (from the repo root), listing every picture you want on the keyboard:
 
-    python3 boards/shields/nice_view_custom/art/make_art.py my_picture.png
+    python3 boards/shields/nice_view_custom/art/make_art.py first.png second.png
 
-It overwrites boards/shields/nice_view_custom/widgets/art.c. Commit that file
-and push; the next CI build puts the picture into the right half's firmware.
+It overwrites boards/shields/nice_view_custom/widgets/art.c with all of them.
+Each time the right half starts, it shows one of them, picked at random. Commit
+art.c and push; the next CI build puts the pictures into the right half's
+firmware. To drop a picture, run the command again without it.
 
 The picture area is 68 pixels wide and 140 pixels tall, as you look at the
 keyboard (the 20 pixels above it show the battery and connection icons).
 Any image size works: it is shrunk to fit, and converted to pure black and
 white because the screen has no greys.
 
-Options:
+Options (they apply to every image):
     --crop           fill the whole area and cut off the edges that don't fit,
                      instead of shrinking the image and adding white bars
     --threshold N    plain black/white cut at brightness N (0-255, try 128).
                      Best for logos, text and line art. Without it, greys are
                      turned into a dot pattern (dithering), which suits photos.
-    --preview FILE   also save a PNG of the result, enlarged 4x, to check it
-                     before flashing
+    --preview FILE   also save a PNG of the results side by side, enlarged 4x,
+                     to check them before flashing
 
 Needs the Pillow library (pip install pillow), or run it with
 `uv run make_art.py ...`, which installs it automatically.
 """
 
 import argparse
+import re
 from pathlib import Path
 
 from PIL import Image, ImageOps
@@ -68,35 +71,16 @@ def to_black_and_white(img, threshold):
     )
 
 
-def c_source(data, command):
+def c_picture(name, source_name, data):
+    """C code for one picture: its pixels, and the LVGL image that uses them."""
     rows = []
     for i in range(0, len(data), 15):
         rows.append("        " + ", ".join(f"0x{b:02x}" for b in data[i : i + 15]) + ",")
     body = "\n".join(rows)
-    return f"""/*
- * The picture shown on the right half's nice!view.
- *
- * GENERATED FILE, do not edit by hand. To rebuild it, run from the repo root:
- *     python3 boards/shields/nice_view_custom/art/{command}
- *
- * Format: an LVGL 8 image (the graphics library ZMK v0.3 uses), 140 x 68
- * pixels, 1 bit per pixel, 8 pixels per byte. On the nice!view a 1 shows as
- * black and a 0 as white (the display driver flips LVGL's colors). It is
- * stored turned 90 degrees clockwise because the screen is mounted sideways.
- */
-
-#include <lvgl.h>
-
-#ifndef LV_ATTRIBUTE_MEM_ALIGN
-#define LV_ATTRIBUTE_MEM_ALIGN
-#endif
-
-#ifndef LV_ATTRIBUTE_IMG_CUSTOM_ART
-#define LV_ATTRIBUTE_IMG_CUSTOM_ART
-#endif
-
+    return f"""
+// From {source_name}
 const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_CUSTOM_ART uint8_t
-    custom_art_map[] = {{
+    {name}_map[] = {{
 #if CONFIG_NICE_VIEW_CUSTOM_WIDGET_INVERTED
         0xff, 0xff, 0xff, 0xff, /*Color of index 0*/
         0x00, 0x00, 0x00, 0xff, /*Color of index 1*/
@@ -108,30 +92,55 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_CUSTOM_AR
 {body}
 }};
 
-const lv_img_dsc_t custom_art = {{
+const lv_img_dsc_t {name} = {{
     .header.cf = LV_IMG_CF_INDEXED_1BIT,
     .header.always_zero = 0,
     .header.reserved = 0,
     .header.w = {HEIGHT},
     .header.h = {WIDTH},
     .data_size = {len(data) + 8},
-    .data = custom_art_map,
+    .data = {name}_map,
 }};
 """
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("image", type=Path)
-    parser.add_argument("--crop", action="store_true")
-    parser.add_argument("--threshold", type=int)
-    parser.add_argument("--preview", type=Path)
-    args = parser.parse_args()
+def c_source(pictures, command):
+    """The whole art.c: every picture, then the list the right half picks from."""
+    images = "".join(c_picture(name, source_name, data) for name, source_name, data in pictures)
+    names = "\n".join(f"    &{name}," for name, _, _ in pictures)
+    return f"""/*
+ * The pictures shown on the right half's nice!view. Each time the right half
+ * starts, it shows one of them, picked at random (see peripheral_status.c).
+ *
+ * GENERATED FILE, do not edit by hand. To rebuild it, run from the repo root:
+ *     python3 boards/shields/nice_view_custom/art/{command}
+ *
+ * Format: LVGL 8 images (the graphics library ZMK v0.3 uses), 140 x 68
+ * pixels, 1 bit per pixel, 8 pixels per byte. On the nice!view a 1 shows as
+ * black and a 0 as white (the display driver flips LVGL's colors). They are
+ * stored turned 90 degrees clockwise because the screen is mounted sideways.
+ */
 
-    picture = to_black_and_white(load_portrait(args.image, args.crop), args.threshold)
-    if args.preview:
-        picture.resize((WIDTH * 4, HEIGHT * 4), Image.Resampling.NEAREST).save(args.preview)
+#include <stddef.h>
+#include <lvgl.h>
 
+#ifndef LV_ATTRIBUTE_MEM_ALIGN
+#define LV_ATTRIBUTE_MEM_ALIGN
+#endif
+
+#ifndef LV_ATTRIBUTE_IMG_CUSTOM_ART
+#define LV_ATTRIBUTE_IMG_CUSTOM_ART
+#endif
+{images}
+// The list the right half picks from, and how many pictures it holds.
+const lv_img_dsc_t *const custom_arts[] = {{
+{names}
+}};
+const size_t custom_arts_count = sizeof(custom_arts) / sizeof(custom_arts[0]);
+"""
+
+
+def to_bytes(picture):
     # Turn it on its side (90 degrees clockwise) to match the screen, then pack
     # the pixels into bytes. Each row of 140 pixels takes 18 bytes (the last
     # 4 bits are padding), which is the layout LVGL expects.
@@ -141,17 +150,47 @@ def main():
     # are drawn that way too), so without this the screen shows a negative.
     data = bytes(b ^ 0xFF for b in sideways.tobytes())
     assert len(data) == 18 * WIDTH, len(data)
+    return data
 
-    # Record the exact command in art.c, so the picture can be rebuilt later.
-    source = args.image.resolve()
-    source_name = source.relative_to(REPO_ROOT) if source.is_relative_to(REPO_ROOT) else source.name
-    command = f"make_art.py {source_name}"
+
+def repo_path(path):
+    """The path as written in art.c: relative to the repo root when possible."""
+    source = path.resolve()
+    return source.relative_to(REPO_ROOT) if source.is_relative_to(REPO_ROOT) else source.name
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("images", type=Path, nargs="+")
+    parser.add_argument("--crop", action="store_true")
+    parser.add_argument("--threshold", type=int)
+    parser.add_argument("--preview", type=Path)
+    args = parser.parse_args()
+
+    pictures, previews = [], []
+    for path in args.images:
+        # The C name comes from the file name: art/coffee.png -> custom_art_coffee.
+        name = "custom_art_" + re.sub(r"\W+", "_", path.stem.lower())
+        if any(name == other for other, _, _ in pictures):
+            parser.error(f"two images would both be called {name}; rename one")
+        picture = to_black_and_white(load_portrait(path, args.crop), args.threshold)
+        previews.append(picture)
+        pictures.append((name, repo_path(path), to_bytes(picture)))
+
+    if args.preview:
+        sheet = Image.new("1", ((WIDTH + 4) * len(previews) - 4, HEIGHT), 0)
+        for i, picture in enumerate(previews):
+            sheet.paste(picture, (i * (WIDTH + 4), 0))
+        sheet.resize((sheet.width * 4, HEIGHT * 4), Image.Resampling.NEAREST).save(args.preview)
+
+    # Record the exact command in art.c, so the pictures can be rebuilt later.
+    command = "make_art.py " + " ".join(str(source_name) for _, source_name, _ in pictures)
     if args.crop:
         command += " --crop"
     if args.threshold is not None:
         command += f" --threshold {args.threshold}"
-    OUTPUT.write_text(c_source(data, command))
-    print(f"Wrote {OUTPUT.relative_to(REPO_ROOT)}")
+    OUTPUT.write_text(c_source(pictures, command))
+    print(f"Wrote {OUTPUT.relative_to(REPO_ROOT)} with {len(pictures)} picture(s)")
 
 
 if __name__ == "__main__":

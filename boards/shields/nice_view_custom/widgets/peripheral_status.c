@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: MIT
  *
  * Copied from ZMK v0.3 (app/boards/shields/nice_view). The only change: the
- * picture comes from our own widgets/art.c instead of ZMK's balloon/mountain.
+ * picture is one of our own, from widgets/art.c, instead of ZMK's balloon or
+ * mountain.
  *
  */
 
 #include <zephyr/kernel.h>
+#include <zephyr/random/random.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -25,9 +27,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include "peripheral_status.h"
 
-// The picture shown on the right half. It is defined in widgets/art.c,
-// which make_art.py generates from an image file.
-LV_IMG_DECLARE(custom_art);
+// Our pictures for the right half, and how many there are. They are defined in
+// widgets/art.c, which make_art.py generates from the image files in art/.
+extern const lv_img_dsc_t *const custom_arts[];
+extern const size_t custom_arts_count;
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -117,9 +120,10 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     lv_obj_align(top, LV_ALIGN_TOP_RIGHT, 0, 0);
     lv_canvas_set_buffer(top, widget->cbuf, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
 
-    // Stock ZMK picks the balloon or the mountain at random here; we always show our picture.
+    // Stock ZMK picks the balloon or the mountain at random here. We pick one of
+    // our pictures at random instead, so it can change each time the half starts.
     lv_obj_t *art = lv_img_create(widget->obj);
-    lv_img_set_src(art, &custom_art);
+    lv_img_set_src(art, custom_arts[sys_rand32_get() % custom_arts_count]);
     lv_obj_align(art, LV_ALIGN_TOP_LEFT, 0, 0);
 
     sys_slist_append(&widgets, &widget->node);

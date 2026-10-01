@@ -9,7 +9,7 @@ artifact named **`firmware`**. It contains:
 
 - `corne_left nice_view_adapter nice_view-nice_nano_v2-zmk.uf2` (with Studio)
 - `corne_right nice_view_adapter nice_view_custom-nice_nano_v2-zmk.uf2` (custom
-  screen picture, from `boards/shields/nice_view_custom/`)
+  screen pictures, from `boards/shields/nice_view_custom/`)
 - `settings_reset-nice_nano_v2-zmk.uf2`
 
 The file names contain spaces, so quote them. The `gh` commands are in `CLAUDE.md`.

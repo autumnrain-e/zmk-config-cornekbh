@@ -1,8 +1,8 @@
-# nice!view with a custom picture (right half)
+# nice!view with custom pictures (right half)
 
 The right half's screen shows a picture below the battery and connection icons.
 Stock ZMK compiles that picture into the firmware from its own `nice_view` shield,
-which picks a hot-air balloon or a mountain at random. To show our own picture,
+which picks a hot-air balloon or a mountain at random. To show our own pictures,
 this folder holds a copy of that shield, and `build.yaml` uses it for the right
 half. The left half still uses ZMK's stock `nice_view`.
 
@@ -12,17 +12,18 @@ three ways:
 - **It is renamed to `nice_view_custom`**: the folder, the file names and the
   Kconfig options (`CONFIG_NICE_VIEW_CUSTOM_WIDGET_*`). With its own name, it
   can't clash with ZMK's shield.
-- **`widgets/peripheral_status.c`** always shows `custom_art` instead of picking
-  at random.
-- **`widgets/art.c`** holds our picture. `art/make_art.py` generates it from an
-  image in `art/`. The comment at the top of `art.c` shows the exact command that
-  made it. The current picture is `art/corne_kbh.png`, drawn pixel by pixel at
-  the screen's exact size.
+- **`widgets/peripheral_status.c`** picks one of our pictures at random each
+  time the right half starts, instead of the balloon or the mountain.
+- **`widgets/art.c`** holds our pictures. `art/make_art.py` generates it from
+  the images in `art/`. The comment at the top of `art.c` shows the exact command
+  that made it. The current pictures are `art/corne_kbh.png` ("CorneKBH" and a
+  mini keyboard) and `art/coffee.png` (a steaming cup in front of a retro
+  sunset). Both are drawn pixel by pixel at the screen's exact size.
 
 When you upgrade ZMK, compare this folder with the new version's
 `app/boards/shields/nice_view` in case upstream changed something.
 
-## Changing the picture
+## Adding or changing pictures
 
 1. **Pick an image.** The picture area is 68 pixels wide and 140 tall, as you
    look at the keyboard. Any size works because the script shrinks it to fit.
@@ -32,24 +33,30 @@ When you upgrade ZMK, compare this folder with the new version's
    screen. The strip above the picture (battery and connection icons) is black
    with white icons.
 2. **Save it in `art/` and convert it.** Keeping it in `art/` records where the
-   picture came from. Run this from the repo root:
+   picture came from. From the repo root, run the command at the top of
+   `widgets/art.c` with your new image added to the list:
 
    ```sh
    python3 boards/shields/nice_view_custom/art/make_art.py \
+     boards/shields/nice_view_custom/art/corne_kbh.png \
+     boards/shields/nice_view_custom/art/coffee.png \
      boards/shields/nice_view_custom/art/my_picture.png --preview /tmp/preview.png
    ```
 
-   This rewrites `widgets/art.c`. Open `/tmp/preview.png` to check the result.
+   This rewrites `widgets/art.c` with every image in the list, so leave one out
+   to remove it. Open `/tmp/preview.png` to check the results side by side.
    For logos, text or line art, add `--threshold 128` for clean edges instead of
    a dot pattern. Add `--crop` to fill the whole area instead of adding white
    bars. The script needs Pillow (`pip install pillow`); `uv run` installs it
    automatically.
-3. **Commit, push and flash.** Commit `widgets/art.c` together with the image
+3. **Commit, push and flash.** Commit `widgets/art.c` together with the images
    and push. When the CI build passes, flash only the right half with
    `corne_right nice_view_adapter nice_view_custom-nice_nano_v2-zmk.uf2`.
 
 Studio's saved settings only cover the keymap, so they never hide a new
-picture.
+picture. To see each picture after flashing, turn the right half off and on
+again: each start is a new random pick, so the same one can come up twice in a
+row.
 
 ## Inverting the colors
 
