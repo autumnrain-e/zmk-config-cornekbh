@@ -18,9 +18,10 @@ three ways:
   the images in `art/`. The comment at the top of `art.c` shows the exact command
   that made it. The current pictures are `art/corne_kbh.png` ("CorneKBH" and a
   mini keyboard), `art/coffee.png` (a steaming cup in front of a retro sunset),
-  `art/black_cat.png` (a black cat on a wall in front of the full moon) and
+  `art/black_cat.png` (a black cat on a wall in front of the full moon),
   `art/poodles.png` (a white mother poodle with a halo, on a cloud, above her
-  two brown pups). All are drawn pixel by pixel at the screen's exact size.
+  two brown pups) and `art/woman_and_kid.png` (an anime-style woman hugging a
+  laughing toddler). All are drawn pixel by pixel at the screen's exact size.
 
 When you upgrade ZMK, compare this folder with the new version's
 `app/boards/shields/nice_view` in case upstream changed something.
@@ -44,6 +45,7 @@ When you upgrade ZMK, compare this folder with the new version's
      boards/shields/nice_view_custom/art/coffee.png \
      boards/shields/nice_view_custom/art/black_cat.png \
      boards/shields/nice_view_custom/art/poodles.png \
+     boards/shields/nice_view_custom/art/woman_and_kid.png \
      boards/shields/nice_view_custom/art/my_picture.png --preview /tmp/preview.png
    ```
 
