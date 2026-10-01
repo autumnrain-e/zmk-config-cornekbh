@@ -8,10 +8,11 @@ Usage (from the repo root), listing every picture you want on the keyboard:
 
     python3 boards/shields/nice_view_custom/art/make_art.py first.png second.png
 
-It overwrites boards/shields/nice_view_custom/widgets/art.c with all of them.
-Each time the right half starts, it shows one of them, picked at random. Commit
-art.c and push; the next CI build puts the pictures into the right half's
-firmware. To drop a picture, run the command again without it.
+It overwrites boards/shields/nice_view_custom/widgets/art.c with all of them
+(at most 32). The right half shows them in turns, in a random order, switching
+every minute (see nice_view_custom.conf to change that). Commit art.c and push;
+the next CI build puts the pictures into the right half's firmware. To drop a
+picture, run the command again without it.
 
 The picture area is 68 pixels wide and 140 pixels tall, as you look at the
 keyboard (the 20 pixels above it show the battery and connection icons).
@@ -109,8 +110,8 @@ def c_source(pictures, command):
     images = "".join(c_picture(name, source_name, data) for name, source_name, data in pictures)
     names = "\n".join(f"    &{name}," for name, _, _ in pictures)
     return f"""/*
- * The pictures shown on the right half's nice!view. Each time the right half
- * starts, it shows one of them, picked at random (see peripheral_status.c).
+ * The pictures shown on the right half's nice!view. They take turns on the
+ * screen in a random order (see peripheral_status.c).
  *
  * GENERATED FILE, do not edit by hand. To rebuild it, run from the repo root:
  *     python3 boards/shields/nice_view_custom/art/{command}
@@ -166,6 +167,9 @@ def main():
     parser.add_argument("--threshold", type=int)
     parser.add_argument("--preview", type=Path)
     args = parser.parse_args()
+    # peripheral_status.c tracks which pictures it has shown in 32 bits.
+    if len(args.images) > 32:
+        parser.error("at most 32 pictures fit (see peripheral_status.c)")
 
     pictures, previews = [], []
     for path in args.images:

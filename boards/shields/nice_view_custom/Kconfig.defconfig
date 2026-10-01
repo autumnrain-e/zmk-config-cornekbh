@@ -39,6 +39,11 @@ config NICE_VIEW_CUSTOM_WIDGET_STATUS
 config NICE_VIEW_CUSTOM_WIDGET_INVERTED
     bool "Invert custom status widget colors"
 
+config NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC
+    int "Seconds between picture changes (0 = keep the first picture)"
+    range 0 86400
+    default 60
+
 if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
 config NICE_VIEW_CUSTOM_WIDGET_STATUS

@@ -7,13 +7,15 @@ this folder holds a copy of that shield, and `build.yaml` uses it for the right
 half. The left half still uses ZMK's stock `nice_view`.
 
 The copy comes from ZMK v0.3 (`app/boards/shields/nice_view`). It differs in
-three ways:
+four ways:
 
 - **It is renamed to `nice_view_custom`**: the folder, the file names and the
   Kconfig options (`CONFIG_NICE_VIEW_CUSTOM_WIDGET_*`). With its own name, it
   can't clash with ZMK's shield.
-- **`widgets/peripheral_status.c`** picks one of our pictures at random each
-  time the right half starts, instead of the balloon or the mountain.
+- **`widgets/peripheral_status.c`** shows our pictures instead of the balloon
+  or the mountain. They take turns, switching every minute (see
+  [Changing pictures over time](#changing-pictures-over-time)).
+- **`Kconfig.defconfig`** adds the setting for how often the picture changes.
 - **`widgets/art.c`** holds our pictures. `art/make_art.py` generates it from
   the images in `art/`. The comment at the top of `art.c` shows the exact command
   that made it. The current pictures are `art/corne_kbh.png` ("CorneKBH" and a
@@ -52,8 +54,8 @@ When you upgrade ZMK, compare this folder with the new version's
      boards/shields/nice_view_custom/art/my_picture.png --preview /tmp/preview.png
    ```
 
-   This rewrites `widgets/art.c` with every image in the list, so leave one out
-   to remove it. Open `/tmp/preview.png` to check the results side by side.
+   This rewrites `widgets/art.c` with every image in the list (at most 32), so
+   leave one out to remove it. Open `/tmp/preview.png` to check the results side by side.
    For logos, text or line art, add `--threshold 128` for clean edges instead of
    a dot pattern. Add `--crop` to fill the whole area instead of adding white
    bars. The script needs Pillow (`pip install pillow`); `uv run` installs it
@@ -63,9 +65,26 @@ When you upgrade ZMK, compare this folder with the new version's
    `corne_right nice_view_adapter nice_view_custom-nice_nano_v2-zmk.uf2`.
 
 Studio's saved settings only cover the keymap, so they never hide a new
-picture. To see each picture after flashing, turn the right half off and on
-again: each start is a new random pick, so the same one can come up twice in a
-row.
+picture.
+
+## Changing pictures over time
+
+When the right half starts, it shows one picture picked at random, then
+switches to the next one every minute. The pictures take turns like a shuffled
+deck of cards: each one is shown once, in a random order, before any of them
+comes back. A new round never starts with the picture already on screen. With
+six pictures you see all of them every six minutes.
+
+To change how often, set `CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC` in
+`nice_view_custom.conf`, in seconds. Set it to `0` to keep the first picture
+until the next start. The timer only runs while the keyboard is awake: during
+deep sleep (after `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT` in `config/corne.conf`)
+nothing changes, and waking up starts a new round.
+
+The battery cost is negligible. The nice!view is a memory LCD, which holds its
+image without power-hungry refreshing, and ZMK already wakes the chip 100 times
+a second to run the screen. Switching pictures once a minute only sends about
+1 KB to the screen.
 
 ## Inverting the colors
 

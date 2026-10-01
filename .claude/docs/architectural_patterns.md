@@ -35,7 +35,7 @@ Studio. The right half is a peripheral that reports key presses.
 - Only the left build gets the Studio USB snippet (`build.yaml:22-24` vs `:25-26`).
 - The screens differ too. The left half uses ZMK's stock `nice_view` shield (a status
   screen). The right half uses `nice_view_custom` from `boards/shields/`, which shows
-  one of our own pictures, picked at random at each start. Kconfig options for the
+  our own pictures, taking turns in a random order every minute. Kconfig options for the
   right half's screen (`CONFIG_NICE_VIEW_CUSTOM_WIDGET_*`) go in that shield's
   `nice_view_custom.conf`.
   In `corne.conf`, the left build would ignore them with an "assigned … but got"

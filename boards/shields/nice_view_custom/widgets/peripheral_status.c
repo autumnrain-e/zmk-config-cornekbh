@@ -3,9 +3,9 @@
  * Copyright (c) 2023 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  *
- * Copied from ZMK v0.3 (app/boards/shields/nice_view). The only change: the
- * picture is one of our own, from widgets/art.c, instead of ZMK's balloon or
- * mountain.
+ * Copied from ZMK v0.3 (app/boards/shields/nice_view). What changed: the
+ * pictures are our own, from widgets/art.c, instead of ZMK's balloon or
+ * mountain, and they take turns on the screen in a random order.
  *
  */
 
@@ -31,6 +31,42 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 // widgets/art.c, which make_art.py generates from the image files in art/.
 extern const lv_img_dsc_t *const custom_arts[];
 extern const size_t custom_arts_count;
+
+// The pictures take turns like a shuffled deck of cards: each round shows every
+// picture once, in a random order, then a new round starts. `shown` has one bit
+// per picture already shown in this round. It holds 32 bits, so make_art.py
+// refuses more than 32 pictures.
+static uint32_t shown;
+static size_t current_art;
+
+static const lv_img_dsc_t *next_art(void) {
+    size_t count = MIN(custom_arts_count, 32);
+    uint32_t all = BIT64(count) - 1; // one bit per picture
+    uint32_t skip = shown;           // pictures this pick can't choose
+
+    if (shown == all) {
+        // Every picture has had its turn: start a new round with all of them,
+        // but don't open it with the picture on screen, so that one can't show
+        // twice in a row. It gets its turn later in the round.
+        shown = 0;
+        skip = BIT(current_art);
+    }
+
+    // Pick one of the remaining pictures at random.
+    size_t pick = sys_rand32_get() % (count - __builtin_popcount(skip));
+    for (size_t i = 0; i < count; i++) {
+        if (!(skip & BIT(i)) && pick-- == 0) {
+            current_art = i;
+            break;
+        }
+    }
+    shown |= BIT(current_art);
+    return custom_arts[current_art];
+}
+
+// LVGL (the graphics library) calls this every
+// CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC seconds.
+static void change_art_cb(lv_timer_t *timer) { lv_img_set_src(timer->user_data, next_art()); }
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -121,10 +157,14 @@ int zmk_widget_status_init(struct zmk_widget_status *widget, lv_obj_t *parent) {
     lv_canvas_set_buffer(top, widget->cbuf, CANVAS_SIZE, CANVAS_SIZE, LV_IMG_CF_TRUE_COLOR);
 
     // Stock ZMK picks the balloon or the mountain at random here. We pick one of
-    // our pictures at random instead, so it can change each time the half starts.
+    // our pictures at random instead, then switch to the next one every
+    // CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC seconds (0 = never).
     lv_obj_t *art = lv_img_create(widget->obj);
-    lv_img_set_src(art, custom_arts[sys_rand32_get() % custom_arts_count]);
+    lv_img_set_src(art, next_art());
     lv_obj_align(art, LV_ALIGN_TOP_LEFT, 0, 0);
+    if (CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC > 0 && custom_arts_count > 1) {
+        lv_timer_create(change_art_cb, CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC * 1000, art);
+    }
 
     sys_slist_append(&widgets, &widget->node);
     widget_battery_status_init();

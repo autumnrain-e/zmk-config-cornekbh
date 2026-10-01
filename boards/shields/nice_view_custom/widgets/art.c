@@ -1,6 +1,6 @@
 /*
- * The pictures shown on the right half's nice!view. Each time the right half
- * starts, it shows one of them, picked at random (see peripheral_status.c).
+ * The pictures shown on the right half's nice!view. They take turns on the
+ * screen in a random order (see peripheral_status.c).
  *
  * GENERATED FILE, do not edit by hand. To rebuild it, run from the repo root:
  *     python3 boards/shields/nice_view_custom/art/make_art.py boards/shields/nice_view_custom/art/corne_kbh.png boards/shields/nice_view_custom/art/coffee.png boards/shields/nice_view_custom/art/black_cat.png boards/shields/nice_view_custom/art/poodles.png boards/shields/nice_view_custom/art/woman_and_kid.png boards/shields/nice_view_custom/art/autumn_rain.png
