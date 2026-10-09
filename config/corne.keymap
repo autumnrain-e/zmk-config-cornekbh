@@ -18,7 +18,7 @@
 //   &lt = Layer-Tap: tap for a key, hold for a layer    (e.g. &lt 2 TAB)
 // 200ms is ZMK's default; it's set here so it's easy to find and tune.
 &mt {
-    tapping-term-ms = <500>;
+    tapping-term-ms = <900>;
 };
 
 &lt {
