@@ -16,9 +16,39 @@
 // so they react instantly and are not affected by this.
 //   &mt = Mod-Tap:   tap for a key, hold for a modifier (e.g. &mt LCTRL A)
 //   &lt = Layer-Tap: tap for a key, hold for a layer    (e.g. &lt 2 TAB)
-// 200ms is ZMK's default; it's set here so it's easy to find and tune.
+// ZMK's default for both is 200ms.
+
+// Home row mods: A S D F / J K L ; are bound to &mt in ZMK Studio.
+//
+// The problem: typing "thanks" came out as "thNks", and "and" as "Nd".
+// ZMK's &mt uses the "hold-preferred" flavor by default: if any other
+// key goes down while a mod-tap key is still held, the mod-tap key
+// becomes its modifier at once. Fast typing rolls from key to key: N
+// goes down a moment before A comes up, so A became Shift and the
+// keyboard sent Shift+N instead of "an".
+// Raising tapping-term-ms didn't help, because that timer only decides
+// when no other key is pressed, and a roll always presses another key.
+//
+// The solution:
+//   flavor = "balanced": another key going down is no longer enough;
+//     it must also come back up before you let go of the mod-tap key.
+//       Roll:     A down, N down, A up, N up  ->  "an"
+//       Shortcut: F down, C down, C up, F up  ->  Cmd+C
+//   require-prior-idle-ms: if any key was pressed in the last 150ms
+//     (you're in the middle of a word), the key types its letter right
+//     away. So pause briefly after typing before using a home row mod,
+//     or use the plain Shift key on the left for capitals.
+//   tapping-term-ms: how long to hold a mod-tap key on its own (e.g.
+//     Cmd+mouse click) before it becomes the modifier.
+//   quick-tap-ms: tap a key, then hold it again within 175ms, and it
+//     repeats the letter instead of becoming the modifier.
+// These settings apply to every &mt key, including the ones bound in
+// Studio, so nothing needs to change in Studio.
 &mt {
-    tapping-term-ms = <900>;
+    flavor = "balanced";
+    tapping-term-ms = <280>;
+    quick-tap-ms = <175>;
+    require-prior-idle-ms = <150>;
 };
 
 &lt {
