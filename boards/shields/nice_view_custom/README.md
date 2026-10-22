@@ -24,17 +24,23 @@ four ways:
   `art/poodles.png` (a white mother poodle with a halo, on a cloud, above her
   two brown pups), `art/autumn_rain.png` (maple leaves falling through the
   rain at night, above the owner's handle, "autumnrain-e"), `art/patty.png` (a
-  portrait of Patty in round sunglasses, with her name along the bottom),
+  portrait of Patty with long wavy hair and octagonal sunglasses, with her name
+  along the bottom),
   `art/alessio.png` (a portrait of Alessio in his sun T-shirt, with his name
   along the bottom), `art/campanita.png` (Campanita, a white poodle, with a
   halo above her head and her name below), `art/valentin.png` (Valentin, a
   brown poodle in a bow tie, with little bones in the sky and his name below),
   `art/maria_cannella.png` (Maria Cannella, a brown poodle girl with a
   polka-dot bow and pearls, a cinnamon roll steaming a heart above her, and
-  her name below) and `art/pegasus.png` (Pegasus Seiya from Saint Seiya, made
+  her name below), `art/pegasus.png` (Pegasus Seiya from Saint Seiya, made
   from a 21 × 45 bead pattern, each bead 3 × 3 pixels, with the corners
-  smoothed by Scale3x). All are drawn pixel by pixel at the screen's exact
-  size.
+  smoothed by Scale3x), `art/jesus.png` (Jesus as on a holy card, with a
+  glowing halo and rays of light behind him, a dark mantle over a white
+  tunic, and the Sacred Heart with a cross on his chest) and `art/mary.png`
+  (Holy Mary as Our Lady of Guadalupe, praying under a starry mantle, with
+  rays of light all around her, standing on a dark crescent moon held up by
+  a little angel with feathered wings). All are drawn pixel by pixel at the
+  screen's exact size.
 
 When you upgrade ZMK, compare this folder with the new version's
 `app/boards/shields/nice_view` in case upstream changed something.
@@ -65,6 +71,8 @@ When you upgrade ZMK, compare this folder with the new version's
      boards/shields/nice_view_custom/art/valentin.png \
      boards/shields/nice_view_custom/art/maria_cannella.png \
      boards/shields/nice_view_custom/art/pegasus.png \
+     boards/shields/nice_view_custom/art/jesus.png \
+     boards/shields/nice_view_custom/art/mary.png \
      boards/shields/nice_view_custom/art/my_picture.png --preview /tmp/preview.png
    ```
 
@@ -87,7 +95,7 @@ When the right half starts, it shows one picture picked at random, then
 switches to the next one every minute. The pictures take turns like a shuffled
 deck of cards: each one is shown once, in a random order, before any of them
 comes back. A new round never starts with the picture already on screen. With
-eleven pictures you see all of them every eleven minutes.
+thirteen pictures you see all of them every thirteen minutes.
 
 To change how often, set `CONFIG_NICE_VIEW_CUSTOM_WIDGET_ART_INTERVAL_SEC` in
 `nice_view_custom.conf`, in seconds. Set it to `0` to keep the first picture
